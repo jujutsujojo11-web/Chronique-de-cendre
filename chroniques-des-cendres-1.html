@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Chroniques des Cendres</title>
+<style>
+  :root{
+    --void:#0a0806;
+    --ash:#15100c;
+    --ash2:#1e1712;
+    --parchment:#e9dcbd;
+    --parchment2:#ddcda3;
+    --ink:#2a1f13;
+    --gold:#c39a3f;
+    --gold-bright:#e6c568;
+    --blood:#7d2323;
+    --moss:#4a5a3a;
+    --violet:#5a4a8a;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(ellipse at 50% 0%, #241a10 0%, var(--void) 55%),
+      var(--void);
+    color:var(--parchment);
+    font-family:Georgia,'Iowan Old Style','Palatino Linotype',serif;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    padding:18px 12px 60px;
+    position:relative;
+    overflow-x:hidden;
+    transition:padding-bottom 0.3s ease;
+  }
+  body.music-open{padding-bottom:70px;}
+  body::before{
+    content:"";
+    position:fixed;inset:0;
+    pointer-events:none;
+    background:radial-gradient(circle at 50% 20%, rgba(195,154,63,0.10), transparent 60%);
+    animation:flicker 6s ease-in-out infinite;
+    z-index:0;
+  }
+  @keyframes flicker{
+    0%,100%{opacity:1;}
+    45%{opacity:0.85;}
+    50%{opacity:1;}
+    70%{opacity:0.92;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    body::before{animation:none;}
+    *{animation-duration:0.01ms !important; transition-duration:0.01ms !important;}
+  }
+
+  .wrap{width:100%;max-width:560px;position:relative;z-index:1;}
+
+  .eyebrow{
+    text-align:center;
+    font-family:Georgia,serif;
+    text-transform:uppercase;
+    letter-spacing:0.35em;
+    font-size:11px;
+    color:var(--gold);
+    opacity:0.85;
+    margin-bottom:6px;
+  }
+  h1.title{
+    text-align:center;
+    font-size:clamp(28px,7vw,40px);
+    margin:0 0 4px;
+    letter-spacing:0.04em;
+    color:var(--gold-bright);
+    text-shadow:0 0 18px rgba(230,197,104,0.35), 0 2px 0 #000;
+    font-weight:400;
+  }
+  .subtitle{
+    text-align:center;
+    font-size:13px;
+    color:var(--parchment2);
+    opacity:0.75;
+    margin-bottom:22px;
+    font-style:italic;
+  }
+
+  .scroll{
+    background:
+      linear-gradient(180deg, #221a12 0%, #140f0a 100%);
+    color:var(--parchment);
+    border-radius:3px;
+    padding:26px 22px;
+    position:relative;
+    border:1px solid rgba(195,154,63,0.16);
+    box-shadow:0 18px 50px rgba(0,0,0,0.6), inset 0 0 40px rgba(90,60,20,0.14), inset 0 0 0 1px rgba(0,0,0,0.4);
+    clip-path:polygon(0% 1.2%,1% 0%,99% 0.4%,100% 1.6%,99.5% 98.5%,100% 100%,1% 99.6%,0% 98%);
+    margin-bottom:16px;
+  }
+  .scroll::before, .scroll::after{
+    content:"";
+    position:absolute;left:8%;right:8%;height:10px;
+    background:repeating-linear-gradient(90deg, rgba(195,154,63,0.10) 0 6px, transparent 6px 12px);
+    opacity:0.5;
+  }
+  .scroll::before{top:2px;}
+  .scroll::after{bottom:2px;}
+
+  .chapter-tab{
+    display:inline-block;
+    background:var(--blood);
+    color:var(--parchment);
+    font-size:11px;
+    letter-spacing:0.18em;
+    text-transform:uppercase;
+    padding:4px 12px;
+    border-radius:0 0 6px 6px;
+    margin:-26px 0 16px -22px;
+    box-shadow:0 4px 8px rgba(0,0,0,0.4);
+  }
+
+  h2.scene-title{
+    font-size:22px;
+    margin:0 0 12px;
+    color:var(--gold-bright);
+    border-bottom:1px solid rgba(233,220,189,0.15);
+    padding-bottom:8px;
+    letter-spacing:0.01em;
+  }
+  p.narrative{
+    font-size:15.5px;
+    line-height:1.65;
+    margin:0 0 14px;
+    color:var(--parchment);
+  }
+  p.narrative:first-letter{
+    font-size:2.4em;
+    float:left;
+    line-height:0.8;
+    padding-right:6px;
+    padding-top:4px;
+    font-weight:700;
+    color:#d64444;
+  }
+
+  .choices{display:flex;flex-direction:column;gap:10px;margin-top:18px;}
+  .choice-btn{
+    text-align:left;
+    background:rgba(233,220,189,0.05);
+    border:1px solid rgba(233,220,189,0.22);
+    color:var(--parchment);
+    padding:13px 14px;
+    border-radius:4px;
+    font-family:Georgia,serif;
+    font-size:14.5px;
+    line-height:1.4;
+    cursor:pointer;
+    transition:background 0.15s, transform 0.1s, border-color 0.15s;
+  }
+  .choice-btn:hover{background:rgba(196,60,60,0.16);border-color:var(--blood);}
+  .choice-btn:active{transform:scale(0.98);}
+  .choice-hint{display:block;font-size:11px;opacity:0.6;margin-top:3px;font-style:italic;}
+
+  .seal-btn{
+    display:block;
+    margin:20px auto 0;
+    background:radial-gradient(circle at 35% 30%, var(--gold-bright), var(--blood) 75%);
+    color:#fff2d6;
+    border:none;
+    width:120px;height:120px;
+    border-radius:50%;
+    font-family:Georgia,serif;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    font-size:13px;
+    font-weight:700;
+    cursor:pointer;
+    box-shadow:0 10px 25px rgba(0,0,0,0.5), inset 0 0 12px rgba(0,0,0,0.4);
+    transition:transform 0.15s;
+  }
+  .seal-btn:hover{transform:scale(1.04);}
+  .seal-btn:active{transform:scale(0.96);}
+
+  .cta-row{display:flex;justify-content:center;margin-top:10px;}
+  .cta{
+    background:linear-gradient(180deg, var(--gold-bright), var(--gold));
+    color:#241a08;
+    border:none;
+    padding:13px 28px;
+    border-radius:3px;
+    font-family:Georgia,serif;
+    text-transform:uppercase;
+    letter-spacing:0.12em;
+    font-size:13px;
+    font-weight:700;
+    cursor:pointer;
+    box-shadow:0 6px 16px rgba(0,0,0,0.4);
+  }
+  .cta:active{transform:scale(0.97);}
+  .cta.ghost{
+    background:transparent;
+    border:1px solid var(--gold);
+    color:var(--gold);
+  }
+
+  /* selection cards */
+  .grid{display:grid;grid-template-columns:1fr;gap:10px;margin:16px 0 4px;}
+  .card{
+    border:1px solid rgba(233,220,189,0.18);
+    background:rgba(233,220,189,0.03);
+    border-radius:6px;
+    padding:14px 16px;
+    cursor:pointer;
+    transition:border-color 0.15s, background 0.15s;
+  }
+  .card:hover{border-color:var(--gold);background:rgba(195,154,63,0.06);}
+  .card.selected{border-color:var(--gold-bright);background:rgba(195,154,63,0.14);box-shadow:0 0 0 1px var(--gold-bright) inset;}
+  .card h3{margin:0 0 4px;font-size:15.5px;color:var(--gold-bright);letter-spacing:0.02em;}
+  .card p{margin:0;font-size:12.5px;color:var(--parchment2);line-height:1.45;}
+  .card .tag{display:inline-block;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);opacity:0.8;margin-top:6px;}
+
+  .field{margin:14px 0;}
+  .field label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:0.18em;color:var(--gold);margin-bottom:6px;}
+  .field input[type=text]{
+    width:100%;background:rgba(233,220,189,0.06);border:1px solid rgba(233,220,189,0.25);
+    color:var(--parchment);padding:11px 12px;border-radius:4px;font-family:Georgia,serif;font-size:15px;
+  }
+  .toggle-row{display:flex;gap:8px;}
+  .toggle-row button{
+    flex:1;padding:10px;border-radius:4px;border:1px solid rgba(233,220,189,0.25);
+    background:rgba(233,220,189,0.04);color:var(--parchment);font-family:Georgia,serif;cursor:pointer;
+  }
+  .toggle-row button.active{background:var(--gold);color:#241a08;border-color:var(--gold);font-weight:700;}
+
+  /* stat bars */
+  .statbar-panel{
+    display:grid;grid-template-columns:1fr 1fr;gap:8px 14px;margin:16px 0 6px;
+  }
+  .statbar{font-size:11px;}
+  .statbar .lbl{display:flex;justify-content:space-between;letter-spacing:0.08em;text-transform:uppercase;color:var(--parchment2);margin-bottom:3px;opacity:0.85;}
+  .statbar .track{height:7px;border-radius:4px;background:rgba(0,0,0,0.35);overflow:hidden;}
+  .statbar .fill{height:100%;border-radius:4px;transition:width 0.4s ease;}
+  .fill.force{background:linear-gradient(90deg,#5a1010,#c23a3a);}
+  .fill.magie{background:linear-gradient(90deg,#2c1f56,#8a6fd6);}
+  .fill.ruse{background:linear-gradient(90deg,#1e3320,#5d9a55);}
+  .fill.moral{background:linear-gradient(90deg,#7a5a12,var(--gold-bright));}
+  .fill.reputation{background:linear-gradient(90deg,#555,#c9c9c9);}
+  .fill.fortune{background:linear-gradient(90deg,#7a5a12,#e6c568);}
+
+  .goal-meter{margin:14px 0 6px;}
+  .goal-meter .lbl{display:flex;justify-content:space-between;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);margin-bottom:5px;}
+  .goal-meter .track{height:9px;border-radius:5px;background:rgba(0,0,0,0.4);overflow:hidden;box-shadow:inset 0 0 6px rgba(0,0,0,0.5);}
+  .goal-meter .fill{height:100%;background:linear-gradient(90deg,var(--blood),var(--gold-bright));box-shadow:0 0 10px rgba(230,197,104,0.6);transition:width 0.5s ease;}
+
+  .topbar{
+    display:flex;justify-content:space-between;align-items:center;
+    font-size:11px;color:var(--parchment2);opacity:0.85;margin-bottom:10px;letter-spacing:0.05em;
+  }
+  .topbar-icons{display:flex;gap:8px;}
+  .icon-btn{
+    background:rgba(233,220,189,0.08);border:1px solid rgba(233,220,189,0.25);
+    color:var(--gold-bright);border-radius:14px;padding:4px 10px;font-size:12px;
+    cursor:pointer;font-family:Georgia,serif;letter-spacing:0.02em;
+  }
+  .icon-btn:active{transform:scale(0.95);}
+
+  .modal-overlay{
+    position:fixed;inset:0;background:rgba(0,0,0,0.72);z-index:40;
+    display:none;align-items:center;justify-content:center;padding:20px;
+  }
+  .modal-overlay.visible{display:flex;}
+  .modal-card{
+    background:linear-gradient(180deg,#221a12,#140f0a);
+    border:1px solid rgba(195,154,63,0.3);border-radius:6px;
+    padding:22px;max-width:420px;width:100%;max-height:78vh;overflow-y:auto;
+    box-shadow:0 20px 60px rgba(0,0,0,0.6);
+  }
+  .modal-card h3{color:var(--gold-bright);margin:0 0 10px;font-size:19px;}
+  .modal-card p.modal-desc{color:var(--parchment2);font-size:13px;line-height:1.5;margin:0 0 12px;}
+  .modal-card .entry{padding:9px 0;border-bottom:1px solid rgba(233,220,189,0.1);font-size:13.5px;color:var(--parchment);}
+  .modal-card .entry:last-of-type{border-bottom:none;}
+  .modal-card .entry .sub{color:var(--parchment2);font-size:11.5px;font-style:italic;margin-top:2px;}
+  .modal-close{
+    display:block;margin-top:16px;background:transparent;border:1px solid var(--gold);
+    color:var(--gold);padding:9px 16px;border-radius:4px;cursor:pointer;
+    font-family:Georgia,serif;width:100%;letter-spacing:0.05em;text-transform:uppercase;font-size:12px;
+  }
+
+  .music-toggle{
+    position:fixed;top:14px;right:14px;z-index:30;
+    width:42px;height:42px;border-radius:50%;
+    background:rgba(10,8,6,0.75);border:1px solid rgba(195,154,63,0.35);
+    color:var(--gold-bright);font-size:18px;cursor:pointer;
+    backdrop-filter:blur(4px);
+    box-shadow:0 4px 14px rgba(0,0,0,0.4);
+    transition:background 0.2s, box-shadow 0.2s;
+  }
+  .music-toggle.playing{background:var(--gold);color:#241a08;box-shadow:0 0 16px rgba(230,197,104,0.55);}
+
+  .music-bar{
+    position:fixed;left:0;right:0;bottom:0;z-index:25;
+    background:rgba(10,8,6,0.94);backdrop-filter:blur(6px);
+    border-top:1px solid rgba(195,154,63,0.25);
+    transform:translateY(100%);transition:transform 0.3s ease;
+  }
+  .music-bar.visible{transform:translateY(0);}
+  .music-inner{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:12px 14px;font-size:12px;color:var(--parchment2);letter-spacing:0.02em;
+  }
+  .music-controls{display:flex;align-items:center;gap:6px;}
+  .music-icon-btn{
+    background:rgba(233,220,189,0.08);border:1px solid rgba(233,220,189,0.22);
+    color:var(--parchment);width:26px;height:26px;border-radius:50%;
+    font-family:Georgia,serif;font-size:14px;cursor:pointer;line-height:1;
+  }
+  .music-link{
+    background:var(--gold);color:#241a08;border:none;
+    padding:6px 14px;border-radius:14px;font-family:Georgia,serif;
+    font-size:11.5px;font-weight:700;cursor:pointer;letter-spacing:0.03em;
+  }
+
+  .bulletin{
+    background:rgba(0,0,0,0.25);
+    border-left:3px solid var(--gold);
+    padding:10px 12px;
+    margin-top:14px;
+    font-size:12.5px;
+    color:var(--parchment2);
+    line-height:1.5;
+  }
+  .bulletin b{color:var(--gold-bright);}
+
+  .final-title{
+    text-align:center;font-size:26px;color:var(--gold-bright);
+    text-shadow:0 0 20px rgba(230,197,104,0.4);
+    margin:4px 0 2px;
+  }
+  .final-sub{text-align:center;font-size:12px;color:var(--parchment2);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:16px;opacity:0.8;}
+
+  .footer-note{text-align:center;font-size:10.5px;color:var(--parchment2);opacity:0.4;margin-top:22px;letter-spacing:0.05em;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Une fiction interactive</div>
+  <h1 class="title">Chroniques des Cendres</h1>
+  <div class="subtitle">Écris ta légende, des ruines de ton passé au trône de ton destin.</div>
+  <div id="app"></div>
+  <div class="footer-note">Chaque choix marque une page. Aucune n'est cosmétique.</div>
+</div>
+
+<button id="musicToggle" class="music-toggle" onclick="toggleMusic()" title="Musique d'ambiance">🎵</button>
+<div id="musicBar" class="music-bar"></div>
+<audio id="bgAudio" src="odysseus.mp3" loop preload="none"></audio>
+
+<div id="infoModal" class="modal-overlay" onclick="closeModalBackdrop(event)">
+  <div class="modal-card" id="modalCard" onclick="event.stopPropagation()"></div>
+</div>
+
+<script>
+/* ---------------- DATA ---------------- */
+
+const RACES = [
+  {id:'humain', name:'Humain', tag:'L\u2019équilibre', desc:'Ni trop fort ni trop faible \u2014 mais l\u2019ambition humaine ne connaît pas de plafond.', mods:{ruse:1}},
+  {id:'orc', name:'Orc', tag:'La force brute', desc:'Ton clan a été chassé des Terres Rouges. Ta poigne parle plus fort que tes mots.', mods:{force:3, magie:-2, moral:1}},
+  {id:'gobelin', name:'Gobelin', tag:'L\u2019ombre vive', desc:'Petit, vif, méprisé \u2014 et pourtant toujours le premier à survivre.', mods:{ruse:3, force:-1, fortune:10}},
+  {id:'elfeNoir', name:'Elfe Noir', tag:'Le sang ancien', desc:'Banni des cités de lumière pour un crime que tu n\u2019as pas commis \u2014 ou peut-être que si.', mods:{magie:2, ruse:1, moral:-1}},
+  {id:'mageDechu', name:'Mage Déchu', tag:'Le savoir interdit', desc:'On t\u2019a arraché ta guilde et brisé ton bâton. Le savoir, lui, ne s\u2019oublie pas.', mods:{magie:3, force:-2, reputation:-1}},
+  {id:'nain', name:'Nain des Forges', tag:'La pierre tenace', desc:'Ta montagne a été engloutie par les Cendres. Il te reste ton marteau et ta rancune.', mods:{force:2, moral:1, magie:-1, fortune:10}},
+];
+
+const ORIGINS = [
+  {id:'orphelin', name:'Orphelin des Ruines', desc:'Tu as grandi seul, entre les pierres d\u2019un village qui n\u2019existe plus sur aucune carte.', mods:{moral:-1, ruse:1}},
+  {id:'noble', name:'Noble Déchu', desc:'Ton nom ouvrait des portes. Aujourd\u2019hui il ne t\u2019attire que le mépris et quelques dettes.', mods:{fortune:50, reputation:2, moral:-1}},
+  {id:'esclave', name:'Esclave Évadé', desc:'Tu portes encore la marque au fer sur le poignet. Elle ne te ralentit plus.', mods:{force:1, moral:-2, ruse:1}},
+  {id:'apprenti', name:'Apprenti Banni', desc:'Tu as touché à une magie que ton maître t\u2019avait interdit d\u2019approcher. Il ne te l\u2019a jamais pardonné.', mods:{magie:1, reputation:-2}},
+  {id:'mercenaire', name:'Mercenaire Sans Terre', desc:'Tu as vendu ta lame à qui payait le plus. Tu n\u2019as plus de camp \u2014 seulement des contrats.', mods:{force:1, fortune:20}},
+  {id:'basfonds', name:'Enfant des Bas-Fonds', desc:'Les ruelles de Charnac t\u2019ont tout appris : voler, mentir, disparaître.', mods:{ruse:2, fortune:-10, reputation:-1}},
+];
+
+const GOALS = [
+  {id:'vengeance', name:'Vengeance', target:'la Confrérie des Cendres', desc:'Ils ont brûlé ta famille et ton foyer. Tu ne dormiras pas tant qu\u2019ils n\u2019auront pas payé.', intro:'Tu revois encore les flammes se refléter dans leurs masques de cendre, cette nuit-là. Depuis, une seule pensée te tient debout : les retrouver, un par un.'},
+  {id:'redemption', name:'Rédemption', target:'ton propre passé', desc:'Tu as fait des choses que tu ne peux pas défaire. Tu cherches un moyen de les racheter \u2014 ou d\u2019en payer le prix.', intro:'Le poids de ce que tu as fait ne te quitte jamais tout à fait. Tu avances en espérant qu\u2019un jour, tes actes pèseront plus lourd que tes fautes.'},
+  {id:'pouvoir', name:'Pouvoir Absolu', target:'les Trônes Brisés', desc:'Un monde qui t\u2019a méprisé finira par s\u2019agenouiller. Peu importe ce que cela coûtera.', intro:'On t\u2019a toujours dit où était ta place. Tu as décidé qu\u2019il n\u2019y avait qu\u2019une place qui t\u2019intéressait vraiment : au sommet.'},
+  {id:'verite', name:'La Vérité', target:'l\u2019Oracle Aveugle', desc:'Ton origine est un mensonge que tout le monde connaît sauf toi. Tu veux enfin savoir qui tu es.', intro:'Un nom murmuré, une prophétie à moitié entendue, une cicatrice que personne ne t\u2019explique. Il est temps de remonter jusqu\u2019à la source.'},
+  {id:'protection', name:'Protection', target:'ton village, Rocheval', desc:'Les Cendres avancent, et Rocheval n\u2019a personne d\u2019autre pour se dresser devant elles.', intro:'Rocheval t\u2019a nourri quand personne d\u2019autre ne le pouvait. Aujourd\u2019hui les rumeurs parlent d\u2019une armée de cendre en marche vers ses murs \u2014 et tu ne comptes pas laisser faire.'},
+  {id:'gloire', name:'Gloire et Richesse', target:'les Chroniques Éternelles', desc:'Tu veux que ton nom survive aux siècles \u2014 gravé, chanté, craint.', intro:'Les bardes chantent des noms de héros morts depuis longtemps. Tu veux que le prochain nom qu\u2019ils gravent dans la pierre soit le tien.'},
+];
+
+const GUILDS = [
+  {id:'lameNoire', name:'La Lame Noire', desc:'Des mercenaires sans scrupules qui vendent leur épée au plus offrant, mais ne trahissent jamais un des leurs.', mods:{force:2, reputation:1}, members:[{name:'Rurik', role:'Bretteur borgne, cicatrice sur la joue gauche'},{name:'Yssa', role:'Éclaireuse silencieuse, ne dort jamais deux fois au même endroit'}]},
+  {id:'cercleGris', name:'Le Cercle Gris', desc:'Une confrérie de mages errants qui étudient ce que la Grande Calcination a laissé derrière elle.', mods:{magie:2, ruse:1}, members:[{name:'Maître Oberic', role:'Archiviste des cendres, ne quitte jamais son grimoire'},{name:'Sella', role:'Apprentie pyromancienne, un peu trop enthousiaste'}]},
+  {id:'mainOmbre', name:'La Main d\u2019Ombre', desc:'Voleurs, espions et informateurs. On ne les voit jamais venir, et c\u2019est bien le but.', mods:{ruse:2, fortune:20}, members:[{name:'Dobbs', role:'Crocheteur de génie, collectionne les serrures brisées'},{name:'Vane', role:'Informatrice de la pègre, connaît tous les noms qui comptent'}]},
+];
+
+const COMPANION_POOL = [
+  {name:'Brann', role:'Ancien soldat déserteur, fidèle jusqu\u2019à l\u2019os'},
+  {name:'Ilya', role:'Guérisseuse itinérante, garde ses secrets'},
+  {name:'Cosk', role:'Chasseur de primes taciturne'},
+  {name:'Nyra', role:'Voleuse repentie, presque'},
+  {name:'Fendrel', role:'Forgeron exilé, toujours une lame à réparer'},
+  {name:'Sable', role:'Éclaireur au passé trouble, excellent pisteur'},
+];
+
+const ARMES = [
+  'une dague ébréchée aux reflets noirs',
+  'une hache de guerre gravée de runes éteintes',
+  'un arc composite en os de bête des cendres',
+  'une épée courte forgée dans le fer des ruines',
+  'un bâton noueux chargé d\u2019une magie ancienne',
+  'un fléau d\u2019armes hérissé de pointes rouillées',
+];
+
+const ARMURES = [
+  'un plastron de cuir clouté aux motifs tribaux',
+  'une cotte de mailles ternie mais solide',
+  'une robe de mage tissée de fils argentés',
+  'un manteau lourd doublé de fourrure de loup des cendres',
+  'des brassards de bronze gravés de sceaux protecteurs',
+  'des bottes renforcées volées à un garde-sentinelle',
+];
+
+const RELIQUES = [
+  'un anneau serti d\u2019une pierre qui pulse faiblement',
+  'une amulette représentant un visage sans yeux',
+  'une bourse pleine de pièces d\u2019un royaume englouti',
+  'un fragment de tablette couvert d\u2019une écriture oubliée',
+  'un flacon scellé contenant une fumée qui ne se dissipe jamais',
+];
+
+function pickRandom(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function pickRandomUnique(arr, n){
+  const copy = arr.slice();
+  const out = [];
+  while(out.length < n && copy.length){
+    out.push(copy.splice(Math.floor(Math.random()*copy.length),1)[0]);
+  }
+  return out;
+}
+function addItem(name, type){ state.inventory.push({name, type}); }
+
+function statBase(){ return {force:5,magie:5,ruse:5,moral:5,fortune:20,reputation:5,but:0}; }
+
+/* ---------------- STATE ---------------- */
+
+let state = {
+  screen:'title',
+  name:'',
+  genre:'m',
+  raceId:null, originId:null, goalId:null,
+  stats: statBase(),
+  chapterIndex:0,
+  log:[],
+  guild:null,
+  inventory:[],
+};
+
+function reset(){
+  state = {screen:'title', name:'', genre:'m', raceId:null, originId:null, goalId:null, stats:statBase(), chapterIndex:0, log:[], guild:null, inventory:[]};
+  render();
+}
+
+function g(masc, fem){ return state.genre==='f' ? fem : masc; }
+function getRace(){ return RACES.find(r=>r.id===state.raceId); }
+function getOrigin(){ return ORIGINS.find(o=>o.id===state.originId); }
+function getGoal(){ return GOALS.find(gl=>gl.id===state.goalId); }
+
+function clamp(v,min,max){ return Math.max(min,Math.min(max,v)); }
+
+function applyEffects(effects){
+  const changes = [];
+  for(const key in effects){
+    const before = state.stats[key];
+    const delta = effects[key];
+    let after;
+    if(key==='but') after = clamp(before+delta,0,100);
+    else if(key==='fortune') after = Math.max(0, before+delta);
+    else after = clamp(before+delta,0,30);
+    state.stats[key] = after;
+    if(delta!==0) changes.push({key, delta});
+  }
+  return changes;
+}
+
+const STAT_LABELS = {force:'Force', magie:'Magie', ruse:'Ruse', moral:'Moral', fortune:'Fortune', reputation:'Réputation'};
+const STAT_MAX = {force:30,magie:30,ruse:30,moral:30,reputation:30};
+
+/* ---------------- CHAPTERS ---------------- */
+
+function chapterOne(){
+  const race = getRace(), origin = getOrigin(), goal = getGoal();
+  return {
+    tab:'Chapitre I',
+    title:'L\u2019Éveil',
+    text: `Tu as ${16} ans quand ta route commence vraiment. ${g('Fils','Fille')} de nulle part, ${race.name.toLowerCase()} marqué${g('','e')} par le sort d\u2019un peuple qui recule sans cesse, tu portes déjà sur toi l\u2019empreinte de ton passé \u2014 ${origin.name.toLowerCase()}.\n\n${goal.intro}\n\nCe soir, sous un ciel couleur de suie, quelque chose te dit que ce chapitre est celui où tu cesses de subir.`,
+    choices:[
+      {label:'Fuir dans les bois avant que le danger ne te trouve', hint:'Prudence — Ruse, Moral', effects:{ruse:2, moral:1}, result:'Tu t\u2019enfonces dans les fourrés, le cœur battant. La forêt t\u2019avale sans un bruit \u2014 et te laisse en vie.'},
+      {label:'Empoigner ce que tu as sous la main et faire face', hint:'Courage — Force, Réputation', effects:{force:2, moral:-1, reputation:1}, result:'Ta main se referme sur une arme de fortune. Tu ne recules pas. On commence déjà à parler de toi.'},
+      {label:'Rester immobile et graver chaque visage dans ta mémoire', hint:'Calcul — Ruse, But', effects:{ruse:1, moral:-1, but:6}, result:'Tu ne bouges pas. Tu observes, tu mémorises, tu ranges chaque détail comme une lame qu\u2019on aiguise pour plus tard.'},
+    ]
+  };
+}
+
+function chapterTwo(){
+  const race = getRace();
+  return {
+    tab:'Chapitre II',
+    title:'Le Premier Sang',
+    text:`Les mois passent. Tu as trouvé refuge dans une caravane de marchands qui traverse les Terres Grises, et pour la première fois, quelqu\u2019un accepte de t\u2019apprendre quelque chose.\n\nUn vieux maître d\u2019armes, un ermite qui parle aux ombres, un forgeron qui compte chaque pièce deux fois \u2014 chacun t\u2019offre une voie. Ton corps de ${race.name.toLowerCase()} ne réagit pas de la même façon à toutes.`,
+    choices:[
+      {label:'S\u2019entraîner au combat jusqu\u2019à l\u2019épuisement', hint:'+ Force', effects:{force:3, fortune:-5, but:4}, result:'Tes muscles brûlent, tes phalanges saignent. Mais ton bras ne tremble plus.'},
+      {label:'Étudier les arcanes en cachette, la nuit', hint:'+ Magie', effects:{magie:3, fortune:-5, but:4}, result:'Les symboles restent d\u2019abord flous, puis se mettent soudain à te répondre.'},
+      {label:'Apprendre à lire les hommes plutôt que les livres', hint:'+ Ruse', effects:{ruse:3, fortune:-5, but:4}, result:'Tu apprends à repérer un mensonge avant qu\u2019il ne soit fini de dire.'},
+    ]
+  };
+}
+
+function chapterGuild(){
+  const race = getRace(), goal = getGoal();
+  const options = GUILDS.map(gu => ({
+    label:`Rejoindre ${gu.name}`,
+    hint:gu.desc,
+    effects: Object.assign({}, gu.mods),
+    custom:(state)=>{ state.guild = {name:gu.name, desc:gu.desc, members:gu.members.slice()}; },
+    result:(state)=>`Tu prêtes serment à ${gu.name}. Ce n\u2019est pas rien de devoir désormais répondre de tes actes devant d\u2019autres que toi-même.`,
+  }));
+  options.push({
+    label:'Fonder ta propre bannière',
+    hint:'Aucun ordre à suivre \u2014 mais aucun soutien tout fait non plus',
+    effects:{reputation:3, moral:1},
+    custom:(state)=>{
+      const members = pickRandomUnique(COMPANION_POOL, 2);
+      state.guild = {
+        name:`La Bannière de ${state.name}`,
+        desc:'Une bannière que tu forges toi-même, sans maître ni ordre à suivre \u2014 seulement ceux qui choisissent de te suivre.',
+        members,
+      };
+    },
+    result:(state)=>`Tu plantes ta propre bannière. ${state.guild.members.map(m=>m.name).join(' et ')} sont les premiers à s\u2019y rallier \u2014 et à parier leur vie sur la tienne.`,
+  });
+  return {
+    tab:'Chapitre III',
+    title:'La Bannière Choisie',
+    text:`Seul${g('','e')}, on survit. Ensemble, on avance. En tant que ${race.name.toLowerCase()} lancé${g('','e')} sur la route de ${goal.name.toLowerCase()}, tu croises plusieurs bannières prêtes à t\u2019accueillir \u2014 ou tu peux choisir de lever la tienne.\n\nCe choix ne se refera pas de sitôt.`,
+    choices: options,
+  };
+}
+
+function chapterThreeClean(){
+  return {
+    tab:'Chapitre IV',
+    title:'L\u2019Ombre à tes Côtés',
+    text:`Dans une taverne sans nom d\u2019une ville qui en a trop, quelqu\u2019un s\u2019assoit à ta table sans y être invité. ${g('Un déserteur','Une déserteuse')} au regard trop calme pour être honnête, qui semble en savoir plus sur ta route que toi-même.\n\n${g('Il','Elle')} te propose un marché : voyager ensemble, un temps.`,
+    choices:[
+      {label:'Accepter et lui faire confiance', hint:'+ Moral, + Réputation \u2014 coûte de l\u2019or', effects:{moral:2, reputation:2, fortune:-15}, result:'Vous partagez la route, et pour la première fois depuis longtemps, tu dors sans un œil ouvert.'},
+      {label:'L\u2019utiliser pour ce qu\u2019elle sait, sans t\u2019attacher', hint:'+ Ruse, + But \u2014 − Moral', effects:{ruse:2, moral:-2, but:10}, result:'Tu tires d\u2019elle des noms, des routes, des secrets \u2014 puis tu repars seul(e), plus lourd(e) d\u2019un peu de culpabilité.'},
+      {label:'Refuser et repartir seul(e)', hint:'+ Ruse, + Moral, + Fortune', effects:{ruse:1, moral:1, fortune:12}, result:'Tu gardes tes distances. Personne ne peut te trahir si personne ne t\u2019approche.'},
+    ]
+  };
+}
+
+function chapterCave(){
+  return {
+    tab:'Chapitre V',
+    title:'La Grotte Oubliée',
+    text:`La pluie te pousse à l\u2019abri sous une paroi rocheuse \u2014 et c\u2019est là que tu la remarques : une fissure trop régulière pour être naturelle, à moitié dissimulée par un rideau de lierre mort. Une grotte, oubliée depuis longtemps, souffle un air froid depuis ses profondeurs.`,
+    choices:[
+      {
+        label:'Explorer les profondeurs sans hésiter',
+        hint:'Risqué \u2014 butin complet',
+        effects:{force:1, moral:-1, but:5, fortune:10},
+        custom:(state)=>{
+          const w = pickRandom(ARMES), a = pickRandom(ARMURES);
+          addItem(w,'Arme'); addItem(a,'Armure');
+          state._lastLoot = [w, a];
+        },
+        result:(state)=>`Au fond de la grotte, entre des ossements qui ne sont pas tous humains, tu trouves ${state._lastLoot[0]} et ${state._lastLoot[1]}. Le prix : quelque chose en toi reste un peu plus froid qu\u2019avant.`,
+      },
+      {
+        label:'Fouiller prudemment l\u2019entrée seulement',
+        hint:'Plus sûr \u2014 butin modeste',
+        effects:{ruse:1, moral:1, fortune:5},
+        custom:(state)=>{
+          const a = pickRandom(ARMURES);
+          addItem(a,'Armure');
+          state._lastLoot = [a];
+        },
+        result:(state)=>`Tu restes près de l\u2019entrée, prudent${g('','e')}. Tu repars tout de même avec ${state._lastLoot[0]}, abandonné là par un précédent visiteur qui n\u2019a pas eu ta chance.`,
+      },
+      {
+        label:'Repartir, ce lieu ne te dit rien qui vaille',
+        hint:'Aucun risque, aucun butin',
+        effects:{ruse:1, moral:1, but:2},
+        result:'Ton instinct te dicte de ne pas t\u2019attarder. Tu reprends la route, plus léger, mais entier.',
+      },
+    ]
+  };
+}
+
+function chapterFour(){
+  const goal = getGoal();
+  return {
+    tab:'Chapitre VI',
+    title:'Le Prix du Pouvoir',
+    text:`Ta route croise enfin celle de ${goal.target}. Un avant-poste, gardé, fortifié \u2014 la première vraie porte entre toi et ce que tu cherches.\n\nTrois voies s\u2019offrent à toi. Aucune n\u2019est sûre.`,
+    choices:[
+      {label:'Défier le garde-champion en duel ouvert', hint:'Voie de la Force (bonus si Force déjà élevée)', effects:{force:3, reputation:5, but:15, moral:2}, bonusStat:'force', bonusEffects:{reputation:5}, result:'Le duel est brutal, court, sans merci. Tu en sors debout \u2014 et ton nom commence à voyager plus vite que toi.'},
+      {label:'Invoquer un rituel que peu osent prononcer', hint:'Voie de la Magie (bonus si Magie déjà élevée)', effects:{magie:3, moral:-3, but:15, reputation:3}, bonusStat:'magie', bonusEffects:{but:8}, result:'Le rituel fonctionne \u2014 mais quelque chose en toi reste froid, après, qui ne l\u2019était pas avant.'},
+      {label:'Se faufiler dans l\u2019ombre et corrompre une sentinelle', hint:'Voie de la Ruse (bonus si Ruse déjà élevée)', effects:{ruse:3, but:12, reputation:-2}, bonusStat:'ruse', bonusEffects:{fortune:15}, result:'Une bourse discrète, un regard détourné, une porte qui reste entrouverte. Personne ne saura jamais que tu es passé(e).'},
+    ]
+  };
+}
+
+function chapterFive(){
+  return {
+    tab:'Chapitre VII',
+    title:'La Trahison',
+    text:`Ce que tu croyais acquis se brise. Une information mal placée, un allié qui parle trop, une promesse qu\u2019on ne tient pas \u2014 quelqu\u2019un t\u2019a vendu${g('','e')}, et tu le découvres au pire moment possible.`,
+    choices:[
+      {label:'Pardonner et tendre à nouveau la main', hint:'+ Moral, + Réputation \u2014 − But', effects:{moral:3, reputation:2, but:-5}, result:'Ce n\u2019était pas de la faiblesse. C\u2019était un choix \u2014 et il en dit long sur qui tu refuses de devenir.'},
+      {label:'Faire payer la trahison immédiatement', hint:'+ Force, + But \u2014 − Moral, − Réputation', effects:{force:2, moral:-2, but:10, reputation:-3}, result:'Ta réponse est rapide et sans discours. On ne te trahira pas deux fois.'},
+      {label:'Retourner la situation à ton avantage', hint:'+ Ruse, + Fortune, + But \u2014 − Moral', effects:{ruse:3, fortune:30, but:5, moral:-2}, result:'Tu transformes la trahison en opportunité. C\u2019est laid, mais c\u2019est efficace \u2014 et tu commences à t\u2019y habituer.'},
+    ]
+  };
+}
+
+function chapterTomb(){
+  return {
+    tab:'Chapitre VIII',
+    title:'La Tombe Scellée',
+    text:`Un tumulus à moitié effondré perce le sol d\u2019une plaine désolée. La pierre du seuil porte un sceau que personne n\u2019a osé briser depuis des générations \u2014 des mots dans une langue que tu ne lis pas, mais dont le sens te parvient quand même : n\u2019entre pas.`,
+    choices:[
+      {
+        label:'Briser le sceau et piller le sarcophage',
+        hint:'Grand butin \u2014 coûte cher en moral et réputation',
+        effects:{moral:-3, but:8, reputation:-2},
+        custom:(state)=>{
+          const r = pickRandom(RELIQUES), w = pickRandom(ARMES);
+          addItem(r,'Relique'); addItem(w,'Arme');
+          state._lastLoot = [r, w];
+        },
+        result:(state)=>`Le sceau cède dans un souffle glacé. Tu repars avec ${state._lastLoot[0]} et ${state._lastLoot[1]} \u2014 mais les rumeurs de profanation te suivront désormais.`,
+      },
+      {
+        label:'Ne prendre qu\u2019une seule relique, en offrande d\u2019excuse',
+        hint:'Butin modeste \u2014 sans conséquence',
+        effects:{but:5},
+        custom:(state)=>{
+          const r = pickRandom(RELIQUES);
+          addItem(r,'Relique');
+          state._lastLoot = [r];
+        },
+        result:(state)=>`Tu prends ${state._lastLoot[0]}, laissant une petite offrande à la place. Un compromis honnête, peut-être.`,
+      },
+      {
+        label:'Respecter le repos des morts et partir',
+        hint:'Aucun butin \u2014 + Moral, + Réputation',
+        effects:{moral:2, reputation:1, but:2},
+        result:'Tu recules et refermes le passage derrière toi. Certaines portes n\u2019ont pas besoin d\u2019être ouvertes.',
+      },
+    ]
+  };
+}
+
+function chapterSix(){
+  const goal = getGoal();
+  return {
+    tab:'Chapitre IX',
+    title:'Les Portes des Cendres',
+    text:`Te voilà devant l\u2019enceinte véritable de ${goal.target}, celle que peu approchent et dont moins encore ressortent. Tout ce que tu as accumulé \u2014 muscles, savoir, ruse, alliances \u2014 va compter maintenant.`,
+    choices:[
+      {label:'L\u2019assaut frontal, sans détour', hint:'Voie de la Force', effects:{force:2, but:20, moral:2, reputation:5}, bonusStat:'force', bonusEffects:{but:8}, result:'Le fracas des armes couvre tout le reste. Tu avances, et rien ne t\u2019arrête.'},
+      {label:'L\u2019infiltration par les arcanes', hint:'Voie de la Magie', effects:{magie:2, but:20, moral:1, reputation:3}, bonusStat:'magie', bonusEffects:{but:8}, result:'Les murs eux-mêmes semblent se plier devant ton pouvoir. Tu te glisses là où personne ne devrait pouvoir entrer.'},
+      {label:'Le plan, tissé depuis des semaines', hint:'Voie de la Ruse', effects:{ruse:2, but:20, fortune:20, reputation:3}, bonusStat:'ruse', bonusEffects:{but:8}, result:'Chaque pièce de ton plan s\u2019emboîte. Ce n\u2019est pas de la chance \u2014 c\u2019est du travail.'},
+    ]
+  };
+}
+
+function chapterSeven(){
+  const goal = getGoal();
+  const finaleTextByGoal = {
+    vengeance:`Tu te tiens enfin devant ceux qui ont réduit ta famille en cendres. Le moment que tu as porté en toi, nuit après nuit, est là. Ta main ne tremble pas.`,
+    redemption:`Face à ton passé, incarné devant toi sous la forme de tout ce que tu as fui, une seule question demeure : que vas-tu en faire, maintenant que tu peux enfin choisir ?`,
+    pouvoir:`Les Trônes Brisés sont à ta portée. Ce que le monde t\u2019a refusé, tu peux enfin le prendre \u2014 à condition d\u2019être prêt${g('','e')} à en payer le prix.`,
+    verite:`L\u2019Oracle Aveugle attend, immobile depuis des siècles, la question que tu es enfin venu${g('','e')} poser. La réponse changera tout ce que tu croyais savoir sur toi.`,
+    protection:`Rocheval brûle déjà aux frontières. Tu arrives à temps \u2014 de justesse \u2014 pour décider si le village que tu aimes survivra à cette nuit.`,
+    gloire:`Les Chroniques Éternelles s\u2019ouvrent devant toi, page blanche. Ce que tu fais maintenant sera la dernière ligne qu\u2019on écrira de toi \u2014 ou la première d\u2019une légende.`,
+  };
+  return {
+    tab:'Chapitre X \u2014 Final',
+    title:'Le Jugement des Cendres',
+    text: finaleTextByGoal[goal.id],
+    choices:[
+      {label:'Frapper avec toute la force que tu as bâtie', hint:'Force & Fureur', effects:{force:4, but:30, moral:1}, result:'Tu ne laisses aucune place au doute. Ce sera fini, d\u2019une manière ou d\u2019une autre, avant la nuit.'},
+      {label:'Agir avec calcul, jusqu\u2019au bout', hint:'Ruse & Magie combinées', effects:{ruse:2, magie:2, but:30, reputation:2}, result:'Chaque geste est pesé. Tu n\u2019improvises pas ta fin \u2014 tu l\u2019as déjà écrite dix fois dans ta tête.'},
+      {label:'Choisir la voie du sacrifice et de la clarté', hint:'Moral & But', effects:{moral:4, but:30, reputation:3}, result:'Tu renonces à la facilité. Ce que tu perds ici, tu ne le regretteras pas.'},
+    ]
+  };
+}
+
+const CHAPTERS = [chapterOne, chapterTwo, chapterGuild, chapterThreeClean, chapterCave, chapterFour, chapterFive, chapterTomb, chapterSix, chapterSeven];
+
+/* ---------------- ENDINGS ---------------- */
+
+const ENDING_TIERS = {
+  triomphe: {
+    vengeance:{title:'Les Cendres, enfin éteintes', text:'Tu as traqué la Confrérie jusque dans ses derniers recoins. Le feu qui a pris ta famille s\u2019éteint enfin en toi \u2014 remplacé par quelque chose qui ressemble, de loin, à la paix.'},
+    redemption:{title:'L\u2019Absolution', text:'Ce que tu as brisé, tu as passé ta vie à le réparer. On ne te regarde plus comme on regardait tes fautes \u2014 mais comme on regarde ceux qui se relèvent.'},
+    pouvoir:{title:'Le Trône Rebâti', text:'Ton nom se dit désormais avec prudence, dans toutes les cours. Le monde qui t\u2019a méprisé s\u2019incline \u2014 pas par amour, mais par nécessité.'},
+    verite:{title:'Le Voile Levé', text:'L\u2019Oracle a parlé, et pour la première fois de ta vie, tu sais exactement qui tu es et d\u2019où tu viens. Ce savoir pèse lourd, mais il t\u2019appartient enfin.'},
+    protection:{title:'Rocheval Debout', text:'Les murs de ton village tiennent encore, et les enfants qui y grandissent ne sauront jamais à quel point ils ont failli tout perdre. C\u2019est exactement ce que tu voulais.'},
+    gloire:{title:'Le Nom Gravé', text:'Les bardes chantent déjà ton histoire dans les tavernes que tu ne visiteras jamais. Les Chroniques Éternelles portent ton nom \u2014 pour de bon, cette fois.'},
+  },
+  victoireAmère: {
+    vengeance:{title:'Un Silence qui ne Console Pas', text:'La Confrérie est tombée. Mais debout parmi les ruines que tu as toi-même causées, tu comprends que la vengeance ne rend jamais ce qu\u2019elle a promis.'},
+    redemption:{title:'Un Pardon Incomplet', text:'Tu as fait ce que tu pouvais, avec ce qu\u2019il te restait. Certains te pardonnent. D\u2019autres ne le feront jamais \u2014 et tu apprends à vivre avec les deux.'},
+    pouvoir:{title:'Une Couronne trop Lourde', text:'Tu as obtenu le pouvoir que tu cherchais. Ce que personne ne t\u2019avait dit, c\u2019est le prix qu\u2019il faut continuer de payer, chaque jour, pour le garder.'},
+    verite:{title:'Une Vérité Amère', text:'L\u2019Oracle t\u2019a répondu \u2014 mais pas comme tu l\u2019espérais. Tu sais enfin qui tu es. Tu n\u2019es pas certain(e) d\u2019avoir voulu le savoir.'},
+    protection:{title:'Rocheval, mais à Quel Prix', text:'Le village est sauvé. Ce qu\u2019il t\u2019en a coûté, personne à l\u2019intérieur de ses murs ne le saura jamais tout à fait.'},
+    gloire:{title:'Une Légende à Moitié Vraie', text:'On chante ton nom \u2014 mais pas toujours l\u2019histoire que tu as réellement vécue. La gloire, tu l\u2019apprends, n\u2019appartient jamais tout à fait à celui qui l\u2019a gagnée.'},
+  },
+  chute: {
+    vengeance:{title:'Consumé(e) par tes Propres Cendres', text:'Tu as poursuivi la Confrérie si loin, si longtemps, qu\u2019il ne reste presque plus rien de qui tu étais avant. La vengeance a gagné \u2014 sur toi autant que sur eux.'},
+    redemption:{title:'Le Poids Jamais Déposé', text:'Tu voulais te racheter. Au lieu de cela, tu as ajouté de nouvelles fautes aux anciennes. Le chemin de la rédemption reste ouvert \u2014 mais tu n\u2019es plus certain(e) d\u2019en être encore digne.'},
+    pouvoir:{title:'Seul(e) au Sommet', text:'Tu as le pouvoir. Tu n\u2019as plus grand-chose d\u2019autre. Le trône que tu voulais tant est glacial, et personne ne reste assez longtemps pour le réchauffer.'},
+    verite:{title:'La Question sans Réponse', text:'L\u2019Oracle s\u2019est tu avant d\u2019avoir fini. Tu repars avec plus de doutes que tu n\u2019en avais en arrivant \u2014 et la certitude amère qu\u2019il te faudra continuer à chercher.'},
+    protection:{title:'Ce qu\u2019il reste de Rocheval', text:'Le village existe encore, techniquement. Ce qu\u2019il était, en revanche, n\u2019a pas survécu à cette nuit \u2014 et une part de toi non plus.'},
+    gloire:{title:'Une Chronique Inachevée', text:'Ton nom apparaît quelque part dans les Chroniques \u2014 en petits caractères, une note de bas de page. La gloire que tu cherchais s\u2019est dérobée au dernier moment.'},
+  }
+};
+
+const TRAIT_LINES = {
+  force:'On se souviendra surtout de ta poigne \u2014 et de ce qu\u2019elle a brisé pour t\u2019amener jusqu\u2019ici.',
+  magie:'Ceux qui t\u2019ont croisé(e) parlent encore, à voix basse, de ce que tu as appris à faire plier.',
+  ruse:'Personne ne t\u2019a jamais vu(e) venir \u2014 et c\u2019est exactement ainsi que tu voulais que ça se passe.',
+  moral:'Dans un monde de cendres, tu as réussi à garder une part de toi intacte. Ce n\u2019est pas rien.',
+};
+
+function computeEnding(){
+  const s = state.stats;
+  const tier = s.but>=80 ? 'triomphe' : (s.but>=40 ? 'victoireAmère' : 'chute');
+  const dominant = ['force','magie','ruse','moral'].reduce((a,b)=> s[b]>s[a] ? b : a, 'force');
+  const base = ENDING_TIERS[tier][state.goalId];
+  return {
+    tier, dominant,
+    title: base.title,
+    text: base.text,
+    trait: TRAIT_LINES[dominant],
+  };
+}
+
+/* ---------------- RENDER ---------------- */
+
+const app = document.getElementById('app');
+
+function statBarsHTML(){
+  const s = state.stats;
+  const keys = ['force','magie','ruse','moral','reputation','fortune'];
+  return `<div class="statbar-panel">` + keys.map(k=>{
+    const max = k==='fortune' ? Math.max(100, s.fortune) : (STAT_MAX[k]||30);
+    const pct = clamp(Math.round((s[k]/max)*100), 3, 100);
+    const display = k==='fortune' ? (s.fortune + ' po') : s[k];
+    return `<div class="statbar">
+      <div class="lbl"><span>${STAT_LABELS[k]}</span><span>${display}</span></div>
+      <div class="track"><div class="fill ${k}" style="width:${pct}%"></div></div>
+    </div>`;
+  }).join('') + `</div>`;
+}
+
+function goalMeterHTML(){
+  const goal = getGoal();
+  return `<div class="goal-meter">
+    <div class="lbl"><span>Quête \u2014 ${goal ? goal.name : ''}</span><span>${state.stats.but}%</span></div>
+    <div class="track"><div class="fill" style="width:${state.stats.but}%"></div></div>
+  </div>`;
+}
+
+function topbarHTML(){
+  const invCount = state.inventory.length;
+  return `<div class="topbar">
+    <span>${state.name}</span>
+    <div class="topbar-icons">
+      <button class="icon-btn" onclick="openGuildModal()">\u{1F6E1}\uFE0F Guilde</button>
+      <button class="icon-btn" onclick="openInvModal()">\u{1F392} Butin${invCount ? ' \u00b7 '+invCount : ''}</button>
+    </div>
+  </div>`;
+}
+
+/* ---- Guild / Inventory modal ---- */
+function openGuildModal(){
+  const card = document.getElementById('modalCard');
+  if(!state.guild){
+    card.innerHTML = `<h3>Aucune bannière</h3><p class="modal-desc">Tu n\u2019as pas encore choisi de guilde. Cela viendra en temps voulu, au fil de ton histoire.</p><button class="modal-close" onclick="closeModal()">Fermer</button>`;
+  } else {
+    const membersHTML = state.guild.members.map(m=>`<div class="entry">${m.name}<div class="sub">${m.role}</div></div>`).join('') || `<p class="modal-desc">Tu es seul${g('','e')} sous cette bannière, pour l\u2019instant.</p>`;
+    card.innerHTML = `<h3>${state.guild.name}</h3><p class="modal-desc">${state.guild.desc}</p>${membersHTML}<button class="modal-close" onclick="closeModal()">Fermer</button>`;
+  }
+  document.getElementById('infoModal').classList.add('visible');
+}
+function openInvModal(){
+  const card = document.getElementById('modalCard');
+  if(!state.inventory.length){
+    card.innerHTML = `<h3>Ton sac est vide</h3><p class="modal-desc">Aucune trouvaille pour l\u2019instant. Les grottes et les tombes oubliées pourraient bien changer ça.</p><button class="modal-close" onclick="closeModal()">Fermer</button>`;
+  } else {
+    const itemsHTML = state.inventory.map(it=>`<div class="entry">${it.name}<div class="sub">${it.type}</div></div>`).join('');
+    card.innerHTML = `<h3>Ton butin</h3>${itemsHTML}<button class="modal-close" onclick="closeModal()">Fermer</button>`;
+  }
+  document.getElementById('infoModal').classList.add('visible');
+}
+function closeModal(){ document.getElementById('infoModal').classList.remove('visible'); }
+function closeModalBackdrop(e){ if(e.target.id==='infoModal') closeModal(); }
+
+/* ---- Background music (local file) ---- */
+let musicStarted = false;
+function renderMusicBar(){
+  const bar = document.getElementById('musicBar');
+  const audio = document.getElementById('bgAudio');
+  bar.innerHTML = `
+    <div class="music-inner">
+      <span>\u{1F3B5} Odysseus \u2014 EPIC: The Musical</span>
+      <div class="music-controls">
+        <button class="music-icon-btn" onclick="scrubVolume(-1)">\u2212</button>
+        <button class="music-icon-btn" onclick="scrubVolume(1)">+</button>
+        <button class="music-link" onclick="toggleMusic()">${audio.paused ? '\u25b6 Lecture' : '\u23f8 Pause'}</button>
+      </div>
+    </div>
+  `;
+}
+function scrubVolume(dir){
+  const audio = document.getElementById('bgAudio');
+  audio.volume = Math.max(0, Math.min(1, audio.volume + dir*0.15));
+}
+function toggleMusic(){
+  const audio = document.getElementById('bgAudio');
+  const btn = document.getElementById('musicToggle');
+  const bar = document.getElementById('musicBar');
+  if(audio.paused){
+    if(audio.volume === 0 || isNaN(audio.volume)) audio.volume = 0.6;
+    audio.play().catch(()=>{});
+    musicStarted = true;
+    bar.classList.add('visible');
+    document.body.classList.add('music-open');
+    btn.classList.add('playing');
+  } else {
+    audio.pause();
+    musicStarted = false;
+    bar.classList.remove('visible');
+    document.body.classList.remove('music-open');
+    btn.classList.remove('playing');
+  }
+  renderMusicBar();
+}
+function startGame(){
+  if(!musicStarted) toggleMusic();
+  goTo('name');
+}
+
+function render(){
+  window.scrollTo(0,0);
+  if(state.screen==='title') return renderTitle();
+  if(state.screen==='name') return renderName();
+  if(state.screen==='race') return renderRace();
+  if(state.screen==='origin') return renderOrigin();
+  if(state.screen==='goal') return renderGoal();
+  if(state.screen==='recap') return renderRecap();
+  if(state.screen==='chapter') return renderChapter();
+  if(state.screen==='result') return renderResult();
+  if(state.screen==='ending') return renderEnding();
+}
+
+function renderTitle(){
+  app.innerHTML = `
+    <div class="scroll">
+      <h2 class="scene-title">Bienvenue, voyageur des cendres</h2>
+      <p class="narrative">Le monde s\u2019est refermé sur lui-même après la Grande Calcination. Des royaumes entiers ne sont plus que suie et légendes. Dans ce monde-là, tu vas devoir choisir qui tu es \u2014 et ce que tu es prêt${g('','e')} à faire pour l\u2019obtenir.</p>
+      <p class="narrative">Ta race, ton origine et ton but façonneront chaque chapitre de ta légende. En chemin, tu pourras rejoindre ou fonder une guilde, et piller grottes et tombes oubliées. Rien n\u2019est cosmétique.</p>
+      <button class="seal-btn" onclick="startGame()">Sceller<br/>ton destin</button>
+    </div>
+  `;
+}
+
+function renderName(){
+  app.innerHTML = `
+    <div class="scroll">
+      <h2 class="scene-title">Qui es-tu ?</h2>
+      <div class="field">
+        <label>Ton nom</label>
+        <input type="text" id="nameInput" maxlength="24" placeholder="Ex : Kaeloth" value="${state.name}"/>
+      </div>
+      <div class="field">
+        <label>On parlera de toi comme...</label>
+        <div class="toggle-row">
+          <button id="btnM" class="${state.genre==='m'?'active':''}" onclick="setGenre('m')">un héros</button>
+          <button id="btnF" class="${state.genre==='f'?'active':''}" onclick="setGenre('f')">une héroïne</button>
+        </div>
+      </div>
+      <div class="cta-row"><button class="cta" onclick="submitName()">Continuer</button></div>
+    </div>
+  `;
+}
+function setGenre(v){ state.genre=v; render(); }
+function submitName(){
+  const v = document.getElementById('nameInput').value.trim();
+  state.name = v || (state.genre==='f' ? 'Sans-Nom' : 'Sans-Nom');
+  goTo('race');
+}
+
+function renderRace(){
+  app.innerHTML = `
+    <div class="topbar"><span>${state.name}</span><span>Étape 2 / 5</span></div>
+    <div class="scroll">
+      <h2 class="scene-title">Choisis ta race</h2>
+      <div class="grid" id="raceGrid">
+        ${RACES.map(r=>`
+          <div class="card ${state.raceId===r.id?'selected':''}" onclick="selectRace('${r.id}')">
+            <h3>${r.name}</h3>
+            <p>${r.desc}</p>
+            <span class="tag">${r.tag}</span>
+          </div>`).join('')}
+      </div>
+      <div class="cta-row"><button class="cta" ${state.raceId?'':'disabled style="opacity:0.4"'} onclick="goTo('origin')">Continuer</button></div>
+    </div>
+  `;
+}
+function selectRace(id){ state.raceId=id; render(); }
+
+function renderOrigin(){
+  app.innerHTML = `
+    <div class="topbar"><span>${state.name}</span><span>Étape 3 / 5</span></div>
+    <div class="scroll">
+      <h2 class="scene-title">Choisis ton origine</h2>
+      <div class="grid">
+        ${ORIGINS.map(o=>`
+          <div class="card ${state.originId===o.id?'selected':''}" onclick="selectOrigin('${o.id}')">
+            <h3>${o.name}</h3>
+            <p>${o.desc}</p>
+          </div>`).join('')}
+      </div>
+      <div class="cta-row"><button class="cta" ${state.originId?'':'disabled style="opacity:0.4"'} onclick="goTo('goal')">Continuer</button></div>
+    </div>
+  `;
+}
+function selectOrigin(id){ state.originId=id; render(); }
+
+function renderGoal(){
+  app.innerHTML = `
+    <div class="topbar"><span>${state.name}</span><span>Étape 4 / 5</span></div>
+    <div class="scroll">
+      <h2 class="scene-title">Choisis ton but</h2>
+      <div class="grid">
+        ${GOALS.map(gl=>`
+          <div class="card ${state.goalId===gl.id?'selected':''}" onclick="selectGoal('${gl.id}')">
+            <h3>${gl.name}</h3>
+            <p>${gl.desc}</p>
+          </div>`).join('')}
+      </div>
+      <div class="cta-row"><button class="cta" ${state.goalId?'':'disabled style="opacity:0.4"'} onclick="finalizeCreation()">Continuer</button></div>
+    </div>
+  `;
+}
+function selectGoal(id){ state.goalId=id; render(); }
+
+function finalizeCreation(){
+  state.stats = statBase();
+  const r = getRace(), o = getOrigin();
+  applyEffects(r.mods);
+  applyEffects(o.mods);
+  goTo('recap');
+}
+
+function renderRecap(){
+  const r = getRace(), o = getOrigin(), gl = getGoal();
+  app.innerHTML = `
+    <div class="topbar"><span>${state.name}</span><span>Étape 5 / 5</span></div>
+    <div class="scroll">
+      <div class="chapter-tab">Prologue</div>
+      <h2 class="scene-title">${state.name}</h2>
+      <p class="narrative">${r.name} \u2014 ${o.name.toLowerCase()}. Ta quête : <b>${gl.name}</b>, contre ${gl.target}.</p>
+      ${statBarsHTML()}
+      ${goalMeterHTML()}
+      <button class="seal-btn" onclick="startChapters()">Débuter<br/>l\u2019histoire</button>
+    </div>
+  `;
+}
+
+function startChapters(){ state.chapterIndex=0; goTo('chapter'); }
+
+let currentChapterData = null;
+
+function renderChapter(){
+  currentChapterData = CHAPTERS[state.chapterIndex]();
+  const c = currentChapterData;
+  app.innerHTML = `
+    ${topbarHTML()}
+    ${goalMeterHTML()}
+    <div class="scroll">
+      <div class="chapter-tab">${c.tab}</div>
+      <h2 class="scene-title">${c.title}</h2>
+      ${c.text.split('\n\n').map(p=>`<p class="narrative">${p}</p>`).join('')}
+      <div class="choices">
+        ${c.choices.map((ch,i)=>`
+          <button class="choice-btn" onclick="makeChoice(${i})">
+            ${ch.label}
+            <span class="choice-hint">${ch.hint}</span>
+          </button>`).join('')}
+      </div>
+    </div>
+  `;
+}
+
+let lastResultText = '';
+let lastChanges = [];
+
+function makeChoice(i){
+  const c = currentChapterData;
+  const choice = c.choices[i];
+  let effects = Object.assign({}, choice.effects);
+  if(choice.bonusStat && state.stats[choice.bonusStat] >= 14 && choice.bonusEffects){
+    for(const k in choice.bonusEffects){ effects[k] = (effects[k]||0) + choice.bonusEffects[k]; }
+  }
+  lastChanges = applyEffects(effects);
+  if(choice.custom) choice.custom(state);
+  lastResultText = typeof choice.result === 'function' ? choice.result(state) : choice.result;
+  goTo('result');
+}
+
+function renderResult(){
+  const changesHTML = lastChanges.map(c=>{
+    const sign = c.delta>0 ? '+' : '';
+    return `${STAT_LABELS[c.key] || (c.key==='but'?'Quête':c.key)} ${sign}${c.delta}`;
+  }).join(' \u00b7 ');
+  app.innerHTML = `
+    ${topbarHTML()}
+    ${goalMeterHTML()}
+    <div class="scroll">
+      <div class="chapter-tab">Conséquence</div>
+      <p class="narrative">${lastResultText}</p>
+      ${changesHTML ? `<div class="bulletin"><b>Chronique \u2014</b> ${changesHTML}</div>` : ''}
+      ${statBarsHTML()}
+      <div class="cta-row"><button class="cta" onclick="nextChapter()">${state.chapterIndex >= CHAPTERS.length-1 ? 'Voir ta légende' : 'Tourner la page'}</button></div>
+    </div>
+  `;
+}
+
+function nextChapter(){
+  if(state.chapterIndex >= CHAPTERS.length-1){
+    goTo('ending');
+  } else {
+    state.chapterIndex += 1;
+    goTo('chapter');
+  }
+}
+
+function renderEnding(){
+  const e = computeEnding();
+  const r = getRace(), o = getOrigin(), gl = getGoal();
+  app.innerHTML = `
+    <div class="scroll">
+      <div class="chapter-tab">Épilogue</div>
+      <div class="final-title">${e.title}</div>
+      <div class="final-sub">${state.name} \u00b7 ${r.name} \u00b7 ${gl.name}</div>
+      <p class="narrative">${e.text}</p>
+      <p class="narrative" style="font-style:italic;opacity:0.85;">${e.trait}</p>
+      ${statBarsHTML()}
+      ${goalMeterHTML()}
+      ${state.guild ? `<div class="bulletin"><b>Ta guilde \u2014</b> ${state.guild.name} (${state.guild.members.length} compagnon${state.guild.members.length>1?'s':''})</div>` : ''}
+      ${state.inventory.length ? `<div class="bulletin"><b>Ton butin \u2014</b> ${state.inventory.length} objet${state.inventory.length>1?'s':''} trouvé${state.inventory.length>1?'s':''} au fil de ta légende</div>` : ''}
+      <div class="cta-row" style="gap:10px;">
+        <button class="cta ghost" onclick="reset()">Écrire une nouvelle légende</button>
+      </div>
+    </div>
+  `;
+}
+
+function goTo(screen){ state.screen = screen; render(); }
+
+render();
+</script>
+</body>
+</html>
