@@ -1,16 +1,320 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="refresh" content="0; url=./chroniques-des-cendres-1.html">
-  <title>Chroniques des Cendres</title>
-  <script>
-    window.location.replace('./chroniques-des-cendres-1.html');
-  </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chroniques des Cendres</title>
+    <style>
+        /* --- DESIGN (CSS) --- */
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #121212;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 20px;
+        }
+        #game-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #1e1e1e;
+            padding: 20px;
+            border: 1px solid #444;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.5);
+        }
+        h1, h2, h3 { color: #ff8c00; }
+        button {
+            background-color: #333; color: #fff;
+            border: 1px solid #555; padding: 10px 15px;
+            margin: 5px; cursor: pointer; border-radius: 4px;
+            font-family: inherit; font-size: 16px;
+        }
+        button:hover { background-color: #555; }
+        button:disabled { background-color: #222; color: #666; cursor: not-allowed; }
+        .hidden { display: none !important; }
+        
+        #story-box {
+            background: #000; padding: 15px; border: 1px solid #333;
+            min-height: 100px; margin-bottom: 20px; white-space: pre-wrap;
+            line-height: 1.5;
+        }
+        
+        .stats-panel {
+            display: flex; justify-content: space-between;
+            background: #222; padding: 10px; margin-bottom: 20px; border: 1px solid #444;
+        }
+
+        #combat {
+            background: #2a0000; padding: 15px; border: 1px solid #ff0000; margin-bottom: 20px;
+        }
+        #combat-log {
+            background: #000; height: 120px; overflow-y: auto;
+            padding: 10px; border: 1px solid #444; font-size: 0.9em; margin-top: 10px;
+        }
+        #combat-log p { margin: 5px 0; }
+
+        #inventory-section {
+            background: #222; padding: 15px; border: 1px solid #444; margin-top: 20px;
+        }
+        ul { list-style-type: none; padding: 0; margin: 0; }
+        li {
+            display: flex; justify-content: space-between; align-items: center;
+            background: #333; padding: 8px 10px; margin-bottom: 5px; border: 1px solid #444;
+        }
+    </style>
 </head>
-<body style="background:#0a0806;color:#e9dcbd;font-family:Georgia,serif;text-align:center;padding:40px">
-  <p>Les Chroniques des Cendres s'ouvrent...</p>
-  <p><a href="./chroniques-des-cendres-1.html" style="color:#e6c568">Lancer le jeu</a></p>
+<body>
+
+    <div id="game-container">
+        <h1>Chroniques des Cendres</h1>
+        
+        <!-- Statistiques du joueur -->
+        <div class="stats-panel">
+            <div><strong>Joueur</strong> | PV : <span id="player-hp">50</span> / <span id="player-maxhp">50</span></div>
+            <div>Attaque Max : <span id="player-atk">10</span></div>
+        </div>
+
+        <!-- Zone de texte de l'histoire -->
+        <div id="story-box">Vous vous réveillez au milieu d'une plaine recouverte de cendres. Le ciel est gris. Que faites-vous ?</div>
+
+        <!-- Interface de Combat (Cachée par défaut) -->
+        <div id="combat" class="hidden">
+            <h2>Combat en cours !</h2>
+            <div class="stats-panel" style="background: #4a0000; border-color: #ff4444;">
+                <div>Vous : <span id="player-hp-combat">50</span> PV</div>
+                <div><span id="enemy-name">Monstre</span> : <span id="enemy-hp">20</span> PV</div>
+            </div>
+            <button id="btn-attack" onclick="combatAttack()">Attaquer</button>
+            <div id="combat-log"></div>
+        </div>
+
+        <!-- Boutons d'action hors combat -->
+        <div id="action-buttons">
+            <button onclick="explore()">Explorer les environs</button>
+        </div>
+
+        <!-- Inventaire -->
+        <div id="inventory-section">
+            <h3>Sac à dos</h3>
+            <ul id="inventory-list">
+                <li>Votre sac est vide.</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- --- LOGIQUE DU JEU (JAVASCRIPT) --- -->
+    <script>
+        // --- 1. VARIABLES GLOBALES ---
+        let player = {
+            hp: 50,
+            maxHp: 50,
+            attack: 10,
+            inventory: ["Potion de Soin"] // On commence avec une potion pour tester
+        };
+
+        let combat = {
+            enemy: null
+        };
+
+        const randomEvents = [
+            { type: "heal", text: "Vous découvrez une ancienne fontaine dont l'eau scintille faiblement. Vous en buvez quelques gorgées et regagnez des forces.", value: 15 },
+            { type: "damage", text: "CRAC ! Vous marchez sur une racine pourrie et tombez dans un ravin caché par les cendres. Vous vous blessez.", value: 5 },
+            { type: "item", text: "Vous fouillez les restes d'un chariot abandonné et trouvez un objet utile !", item: "Potion de Soin" },
+            { type: "combat", text: "Un grognement résonne derrière vous. Une créature tapie dans l'ombre bondit !", enemy: { name: "Rôdeur des Cendres", hp: 20, attack: 6 } },
+            { type: "combat", text: "Des cendres s'élève une carcasse animée par une magie noire !", enemy: { name: "Squelette Calciné", hp: 15, attack: 4 } },
+            { type: "nothing", text: "Le vent souffle sur les plaines désolées. Rien d'autre ne bouge. L'atmosphère est pesante mais calme." }
+        ];
+
+        // --- 2. FONCTIONS DE BASE ---
+        function updateUI() {
+            document.getElementById("player-hp").textContent = player.hp;
+            document.getElementById("player-maxhp").textContent = player.maxHp;
+            document.getElementById("player-atk").textContent = player.attack;
+            updateInventoryUI();
+        }
+
+        function updateStory(text) {
+            const storyBox = document.getElementById("story-box");
+            storyBox.textContent = text;
+        }
+
+        function gameOver() {
+            updateStory("Vous avez succombé à vos blessures... Votre voyage s'arrête ici, dans les cendres.");
+            document.getElementById("action-buttons").innerHTML = "<button onclick='location.reload()'>Recommencer</button>";
+            document.getElementById("combat").classList.add("hidden");
+        }
+
+        // --- 3. EXPLORATION & ÉVÉNEMENTS ---
+        function explore() {
+            // 60% de chance d'avoir un événement aléatoire
+            if (Math.random() < 0.60) {
+                triggerRandomEvent();
+            } else {
+                updateStory("Vous avancez prudemment à travers le brouillard. Le paysage semble inchangé.");
+            }
+        }
+
+        function triggerRandomEvent() {
+            const randomIndex = Math.floor(Math.random() * randomEvents.length);
+            const event = randomEvents[randomIndex];
+
+            updateStory(`*** ÉVÉNEMENT ***\n${event.text}`);
+
+            switch(event.type) {
+                case "heal":
+                    player.hp += event.value;
+                    if (player.hp > player.maxHp) player.hp = player.maxHp;
+                    updateStory(document.getElementById("story-box").textContent + `\n(Vous avez récupéré ${event.value} PV)`);
+                    updateUI();
+                    break;
+                case "damage":
+                    player.hp -= event.value;
+                    updateUI();
+                    if (player.hp <= 0) gameOver();
+                    break;
+                case "item":
+                    player.inventory.push(event.item);
+                    updateUI();
+                    break;
+                case "combat":
+                    startCombat(event.enemy);
+                    break;
+            }
+        }
+
+        // --- 4. COMBAT ---
+        function startCombat(enemyData) {
+            combat.enemy = { name: enemyData.name, hp: enemyData.hp, attack: enemyData.attack };
+            showCombat();
+        }
+
+        function showCombat() {
+            document.getElementById("combat").classList.remove("hidden");
+            document.getElementById("action-buttons").classList.add("hidden");
+            document.getElementById("enemy-name").textContent = combat.enemy.name;
+            
+            const combatLog = document.getElementById("combat-log");
+            combatLog.innerHTML = ""; 
+            logCombat(`Un ${combat.enemy.name} vous barre la route !`);
+            
+            updateCombatUI();
+        }
+
+        function updateCombatUI() {
+            document.getElementById("player-hp-combat").textContent = player.hp;
+            document.getElementById("enemy-hp").textContent = combat.enemy.hp > 0 ? combat.enemy.hp : 0;
+        }
+
+        function combatAttack() {
+            document.getElementById("btn-attack").disabled = true; // Désactive le bouton pour éviter le spam
+
+            let damage = Math.floor(Math.random() * player.attack) + 1;
+            combat.enemy.hp -= damage;
+            logCombat(`Vous frappez et infligez ${damage} points de dégâts.`);
+            updateCombatUI();
+
+            if (combat.enemy.hp <= 0) {
+                setTimeout(() => endCombat(true), 1000);
+            } else {
+                setTimeout(enemyTurn, 1000);
+            }
+        }
+
+        function enemyTurn() {
+            let damage = Math.floor(Math.random() * combat.enemy.attack) + 1;
+            player.hp -= damage;
+            logCombat(`Le ${combat.enemy.name} riposte et vous inflige ${damage} points de dégâts.`);
+            
+            updateCombatUI();
+            updateUI(); 
+
+            if (player.hp <= 0) {
+                setTimeout(() => endCombat(false), 1000);
+            } else {
+                document.getElementById("btn-attack").disabled = false; // Réactive le bouton d'attaque
+            }
+        }
+
+        function endCombat(isVictory) {
+            document.getElementById("btn-attack").disabled = false;
+            
+            if (isVictory) {
+                document.getElementById("combat").classList.add("hidden");
+                document.getElementById("action-buttons").classList.remove("hidden");
+                updateStory(`Vous avez terrassé le ${combat.enemy.name} ! L'air semble plus léger, mais le voyage continue...`);
+                
+                // Loot aléatoire après le combat
+                if(Math.random() > 0.5) {
+                    player.inventory.push("Potion de Soin");
+                    updateStory(document.getElementById("story-box").textContent + `\nVous trouvez une Potion de Soin sur le cadavre !`);
+                }
+                updateUI();
+            } else {
+                gameOver();
+            }
+        }
+
+        function logCombat(message) {
+            let log = document.getElementById("combat-log");
+            log.innerHTML += `<p>${message}</p>`;
+            log.scrollTop = log.scrollHeight;
+        }
+
+        // --- 5. INVENTAIRE ---
+        function updateInventoryUI() {
+            const inventoryList = document.getElementById("inventory-list");
+            inventoryList.innerHTML = ""; 
+
+            if (!player.inventory || player.inventory.length === 0) {
+                inventoryList.innerHTML = "<li>Votre sac est vide.</li>";
+                return;
+            }
+
+            player.inventory.forEach((item, index) => {
+                let li = document.createElement("li");
+                li.textContent = item;
+
+                let useBtn = document.createElement("button");
+                useBtn.textContent = "Utiliser";
+                useBtn.onclick = function() { useItem(index); };
+
+                li.appendChild(useBtn);
+                inventoryList.appendChild(li);
+            });
+        }
+
+        function useItem(index) {
+            const item = player.inventory[index];
+
+            if (item === "Potion de Soin") {
+                let healAmount = 25;
+                player.hp += healAmount;
+                if (player.hp > player.maxHp) player.hp = player.maxHp;
+
+                let context = document.getElementById("combat").classList.contains("hidden") 
+                    ? "Vous buvez une Potion de Soin." 
+                    : "En plein combat, vous avalez une Potion de Soin!";
+                
+                if(!document.getElementById("combat").classList.contains("hidden")) {
+                    logCombat(`Vous buvez une potion et récupérez des PV.`);
+                } else {
+                    updateStory(`${context} Vous récupérez des PV.`);
+                }
+                
+                player.inventory.splice(index, 1); // Retire la potion
+            }
+
+            updateUI(); 
+            if (!document.getElementById("combat").classList.contains("hidden")) {
+                updateCombatUI();
+            }
+        }
+
+        // --- 6. INITIALISATION AU LANCEMENT ---
+        window.onload = function() {
+            updateUI();
+        };
+
+    </script>
 </body>
 </html>
